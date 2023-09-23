@@ -62,7 +62,7 @@ class Unit:
           if ((self.row == target.row-1 and self.column == target.column) or (self.row == target.row +1 and self.column == target.column) or (self.row == target.row and self.column == target.column-1) or (self.row == target.row and self.column == target.column+1)):
             #S cannot repair T if T’s health is already at 9. This is would be an invalid action.
             if target.health == 9:
-              return
+              return 9
             else:
               #The repair must lead to a change of health on T
               amount = self.repair_table[self.type.value][target.type.value]
