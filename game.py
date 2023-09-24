@@ -85,23 +85,68 @@ class Game:
             target.mod_health(health_delta)
             self.remove_dead(coord)
 
-    def is_valid_move(self, coords : CoordPair) -> bool:
+    def is_adjacent_move(self, coords: CoordPair) -> bool:
+        # TODO
+        return False
+
+    def is_valid_move(self, coords: CoordPair) -> bool:
         """Validate a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
         if not self.is_valid_coord(coords.src) or not self.is_valid_coord(coords.dst):
             return False
         unit = self.get(coords.src)
         if unit is None or unit.player != self.next_player:
             return False
+        '''TODO everything above is good but below we need to instead of checking if the destination is empty
+        we check if the destination is one away in any direction relative to src
+        so call function is_adjacent_move
+        '''
         unit = self.get(coords.dst)
         return (unit is None)
 
-    def perform_move(self, coords : CoordPair) -> Tuple[bool,str]:
+    # checks if the move is to an empty cell
+    def is_movement(self, coords: CoordPair) -> bool:
+        unit = self.get(coords.dst)
+        return (unit is None)
+
+    def is_attack(self, coords: CoordPair) -> bool:
+        return False
+
+    def is_repair(self, coords: CoordPair) -> bool:
+        return False
+
+    def is_self_destruct(self, coords: CoordPair) -> bool:
+        return False
+
+    def perform_movement(self, coords: CoordPair) -> Tuple[bool, str]:
+        self.set(coords.dst, self.get(coords.src))
+        self.set(coords.src, None)
+
+        return (True, "")
+
+    def perform_attack(self, coords: CoordPair) -> Tuple[bool, str]:
+        return (True, "")
+
+    def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
+        return (True, "")
+
+    def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
+        return (True, "")
+
+    def perform_move(self, coords: CoordPair) -> Tuple[bool, str]:
         """Validate and perform a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
         if self.is_valid_move(coords):
-            self.set(coords.dst,self.get(coords.src))
-            self.set(coords.src,None)
-            return (True,"")
-        return (False,"invalid move")
+            if self.is_movement(coords):
+                return self.perform_movement(coords)
+            elif self.is_attack(coords):
+                return self.perform_attack(coords)
+            elif self.is_repair(coords):
+                return self.perform_repair(coords)
+            elif self.is_self_destruct(coords):
+                return self.perform_self_destruct(coords)
+            else:
+                return (False, "invalid move")
+
+        return (False, "invalid move")
 
     def next_turn(self):
         """Transitions game to the next turn."""
