@@ -85,23 +85,124 @@ class Game:
             target.mod_health(health_delta)
             self.remove_dead(coord)
 
-    def is_valid_move(self, coords : CoordPair) -> bool:
+    def is_adjacent_move(self, coords: CoordPair) -> bool:
+        if coords.src.row == coords.dst.row:
+            if abs(coords.src.col - coords.dst.col) == 1:
+                return True
+        elif coords.src.col == coords.dst.col:
+            if abs(coords.src.row - coords.dst.row) == 1:
+                return True
+        return False
+
+    def is_adjacent_move_or_self_move(self, coords: CoordPair) -> bool:
+        return self.is_adjacent_move(coords) or (coords.src.row == coords.dst.row and coords.src.col == coords.dst.col)
+
+    def is_valid_move(self, coords: CoordPair) -> bool:
         """Validate a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
         if not self.is_valid_coord(coords.src) or not self.is_valid_coord(coords.dst):
             return False
         unit = self.get(coords.src)
         if unit is None or unit.player != self.next_player:
             return False
+        '''
+        TODO everything above is good but below we need to instead of checking if the destination is empty
+        we check if the destination is one away in any direction relative to src
+        so call function is_adjacent_move
+        
         unit = self.get(coords.dst)
         return (unit is None)
+        '''
+        return self.is_adjacent_move_or_self_move(coords)
 
-    def perform_move(self, coords : CoordPair) -> Tuple[bool,str]:
+    def is_AI_Firewall_Program(self, coords: CoordPair) -> bool:
+        unit = self.get(coords.src)
+        return (unit.type == UnitType.AI) or (unit.type == UnitType.Firewall) or (unit.type == UnitType.Program)
+
+    def is_engaged_in_combat(self, coords: CoordPair) -> bool:
+        coordsToCheck = [
+            Coord(coords.src.row, coords.src.col + 1),
+            Coord(coords.src.row, coords.src.col - 1),
+            Coord(coords.src.row + 1, coords.src.col),
+            Coord(coords.src.row - 1, coords.src.col),
+        ]
+
+        oppPlayer = Player.next(self.get(coords.src).player)
+
+        for currentCoord in coordsToCheck:
+            if self.get(currentCoord) is None:
+                continue
+            if self.get(currentCoord).player == oppPlayer:
+                return True
+        return False
+
+    def is_moving_in_right_direction(self, coords: CoordPair) -> bool:
+        unit = self.get(coords.src)
+        if unit.player == Player.Attacker:
+            return (coords.dst.col - coords.src.col == -1) or (coords.dst.row - coords.src.row == -1)
+        else:
+            return (coords.dst.col - coords.src.col == 1) or (coords.dst.row - coords.src.row == 1)
+
+    # checks if the move is to an empty cell & all other checks necessary for movement action
+    def is_movement(self, coords: CoordPair) -> bool:
+
+        if not self.is_adjacent_move(coords):
+            return False
+
+        unit = self.get(coords.dst)
+        if unit is not None:
+            return False
+
+        if self.is_AI_Firewall_Program(coords):
+
+            if self.is_engaged_in_combat(coords):
+                return False
+
+            if not self.is_moving_in_right_direction(coords):
+                return False
+
+        return True
+
+    def is_attack(self, coords: CoordPair) -> bool:
+        return False
+
+    def is_repair(self, coords: CoordPair) -> bool:
+        return False
+
+    def is_self_destruct(self, coords: CoordPair) -> bool:
+        if coords.src.row == coords.dst.row and coords.src.col == coords.dst.col:
+            return True
+        return False
+
+    def perform_movement(self, coords: CoordPair) -> Tuple[bool, str]:
+        self.set(coords.dst, self.get(coords.src))
+        self.set(coords.src, None)
+
+        return (True, "")
+
+    def perform_attack(self, coords: CoordPair) -> Tuple[bool, str]:
+        return (True, "")
+
+    def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
+        return (True, "")
+
+    def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
+        return (True, "")
+
+    def perform_move(self, coords: CoordPair) -> Tuple[bool, str]:
         """Validate and perform a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
         if self.is_valid_move(coords):
-            self.set(coords.dst,self.get(coords.src))
-            self.set(coords.src,None)
-            return (True,"")
-        return (False,"invalid move")
+            if self.is_movement(coords):
+                return self.perform_movement(coords)
+            elif self.is_attack(coords):
+                return self.perform_attack(coords)
+            elif self.is_repair(coords):
+                return self.perform_repair(coords)
+            elif self.is_self_destruct(coords):
+                return self.perform_self_destruct(coords)
+            else:
+                return (False, "invalid move")
+
+        return (False, "invalid move")
 
     def next_turn(self):
         """Transitions game to the next turn."""
