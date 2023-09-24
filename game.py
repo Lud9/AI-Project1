@@ -86,8 +86,16 @@ class Game:
             self.remove_dead(coord)
 
     def is_adjacent_move(self, coords: CoordPair) -> bool:
-        # TODO
+        if coords.src.row == coords.dst.row:
+            if abs(coords.src.col - coords.dst.col) == 1:
+                return True
+        elif coords.src.col == coords.dst.col:
+            if abs(coords.src.row - coords.dst.row) == 1:
+                return True
         return False
+
+    def is_adjacent_move_or_self_move(self, coords: CoordPair) -> bool:
+        return self.is_adjacent_move(coords) or (coords.src.row == coords.dst.row and coords.src.col == coords.dst.col)
 
     def is_valid_move(self, coords: CoordPair) -> bool:
         """Validate a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
@@ -96,17 +104,63 @@ class Game:
         unit = self.get(coords.src)
         if unit is None or unit.player != self.next_player:
             return False
-        '''TODO everything above is good but below we need to instead of checking if the destination is empty
+        '''
+        TODO everything above is good but below we need to instead of checking if the destination is empty
         we check if the destination is one away in any direction relative to src
         so call function is_adjacent_move
+        
+        unit = self.get(coords.dst)
+        return (unit is None)
         '''
-        unit = self.get(coords.dst)
-        return (unit is None)
+        return self.is_adjacent_move_or_self_move(coords)
 
-    # checks if the move is to an empty cell
+    def is_AI_Firewall_Program(self, coords: CoordPair) -> bool:
+        unit = self.get(coords.src)
+        return (unit.type == UnitType.AI) or (unit.type == UnitType.Firewall) or (unit.type == UnitType.Program)
+
+    def is_engaged_in_combat(self, coords: CoordPair) -> bool:
+        coordsToCheck = [
+            Coord(coords.src.row, coords.src.col + 1),
+            Coord(coords.src.row, coords.src.col - 1),
+            Coord(coords.src.row + 1, coords.src.col),
+            Coord(coords.src.row - 1, coords.src.col),
+        ]
+
+        oppPlayer = Player.next(self.get(coords.src).player)
+
+        for currentCoord in coordsToCheck:
+            if self.get(currentCoord) is None:
+                continue
+            if self.get(currentCoord).player == oppPlayer:
+                return True
+        return False
+
+    def is_moving_in_right_direction(self, coords: CoordPair) -> bool:
+        unit = self.get(coords.src)
+        if unit.player == Player.Attacker:
+            return (coords.dst.col - coords.src.col == -1) or (coords.dst.row - coords.src.row == -1)
+        else:
+            return (coords.dst.col - coords.src.col == 1) or (coords.dst.row - coords.src.row == 1)
+
+    # checks if the move is to an empty cell & all other checks necessary for movement action
     def is_movement(self, coords: CoordPair) -> bool:
+
+        if not self.is_adjacent_move(coords):
+            return False
+
         unit = self.get(coords.dst)
-        return (unit is None)
+        if unit is not None:
+            return False
+
+        if self.is_AI_Firewall_Program(coords):
+
+            if self.is_engaged_in_combat(coords):
+                return False
+
+            if not self.is_moving_in_right_direction(coords):
+                return False
+
+        return True
 
     def is_attack(self, coords: CoordPair) -> bool:
         return False
@@ -115,6 +169,8 @@ class Game:
         return False
 
     def is_self_destruct(self, coords: CoordPair) -> bool:
+        if coords.src.row == coords.dst.row and coords.src.col == coords.dst.col:
+            return True
         return False
 
     def perform_movement(self, coords: CoordPair) -> Tuple[bool, str]:
