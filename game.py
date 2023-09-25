@@ -94,8 +94,11 @@ class Game:
                 return True
         return False
 
+    def is_self_move(self, coords: CoordPair) -> bool:
+        return (coords.src.row == coords.dst.row and coords.src.col == coords.dst.col)
+
     def is_adjacent_move_or_self_move(self, coords: CoordPair) -> bool:
-        return self.is_adjacent_move(coords) or (coords.src.row == coords.dst.row and coords.src.col == coords.dst.col)
+        return self.is_adjacent_move(coords) or self.is_self_move(coords)
 
     def is_valid_move(self, coords: CoordPair) -> bool:
         """Validate a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
@@ -169,9 +172,7 @@ class Game:
         return False
 
     def is_self_destruct(self, coords: CoordPair) -> bool:
-        if coords.src.row == coords.dst.row and coords.src.col == coords.dst.col:
-            return True
-        return False
+        return self.is_self_move(coords)
 
     def perform_movement(self, coords: CoordPair) -> Tuple[bool, str]:
         self.set(coords.dst, self.get(coords.src))
@@ -186,6 +187,23 @@ class Game:
         return (True, "")
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
+
+        coordsToCheck = [
+            Coord(coords.src.row, coords.src.col + 1),
+            Coord(coords.src.row, coords.src.col - 1),
+            Coord(coords.src.row + 1, coords.src.col),
+            Coord(coords.src.row - 1, coords.src.col),
+            Coord(coords.src.row + 1, coords.src.col + 1),
+            Coord(coords.src.row - 1, coords.src.col - 1),
+            Coord(coords.src.row + 1, coords.src.col - 1),
+            Coord(coords.src.row - 1, coords.src.col + 1),
+        ]
+
+        for currentCord in coordsToCheck:
+            self.mod_health(currentCord, -2)
+
+        self.mod_health(coords.src, -9)
+
         return (True, "")
 
     def perform_move(self, coords: CoordPair) -> Tuple[bool, str]:
