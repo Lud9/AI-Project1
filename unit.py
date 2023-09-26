@@ -57,7 +57,7 @@ class Unit:
     def repair_amount(self, target: Unit) -> int:
         """How much can this unit repair another unit."""
          #T and S must be friendly units
-        if self == target:  
+        if (self is Player.Attacker and target is Player.Attacker) or (self is Player.Defender and target is Player.Defender):  
           #T must be adjacent to S in any of the 4 directions (up, down, left or right).
           if ((self.row == target.row-1 and self.col == target.col) or (self.row == target.row +1 and self.col == target.col) or (self.row == target.row and self.col == target.col-1) or (self.row == target.row and self.col == target.col+1)):
             #S cannot repair T if T’s health is already at 9. This is would be an invalid action.
