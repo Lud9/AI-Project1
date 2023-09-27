@@ -1,6 +1,7 @@
+import os
 import argparse
 from game import Game, GameType, Player, CoordPair,Options
-
+    
 def main():
     # parse command line arguments
     parser = argparse.ArgumentParser(
@@ -10,7 +11,13 @@ def main():
     parser.add_argument('--max_time', type=float, help='maximum search time')
     parser.add_argument('--game_type', type=str, default="manual", help='game type: auto|attacker|defender|manual')
     parser.add_argument('--broker', type=str, help='play via a game broker')
+    
+    #########The maximum number of turns to declare the end of the game 
+    parser.add_argument('--max_turns', type=int, help='number of turns before game ends') 
+    parser.add_argument('--alpha_beta', type=bool, help='A Boolean to force the use of either minimax (FALSE) or alpha-beta (TRUE)')
+    
     args = parser.parse_args()
+    
 
     # parse the game type
     if args.game_type == "attacker":
@@ -32,14 +39,54 @@ def main():
         options.max_time = args.max_time
     if args.broker is not None:
         options.broker = args.broker
+    
+    ########## override 
+    if args.max_turns is not None:
+        options.max_turns = args.max_turns
+    if args.alpha_beta is not None:
+        options.alpha_beta = args.alpha_beta
 
     # create a new game
     game = Game(options=options)
 
+###############Function to generate output file
+    filename = f"gameTrace-{options.alpha_beta}-{options.max_time}-{options.max_turns}.txt"
+    def generate_output_file():
+        with open(filename, 'a') as file:
+            try:
+                if os.path.exists(filename):
+                    strg= str(game_type)
+                    if (os.path.getsize(filename)<= 0):
+                        
+                        file.write(f"Value of the timeout in seconds: {options.max_time}\n")
+                        file.write(f"The maximum number of turns: {options.max_turns}\n")
+                        if ('Comp' in strg):
+                            file.write(f"The alpha-beta is {options.alpha_beta}\n")
+                            if strg.find('Comp')< strg.find('r'):
+                                file.write("Player 1 is AI & Player 2 is H\n")
+                            else:
+                                file.write("Player 1 is H & Player 2 is AI\n")
+                            #file.write(f"{heuristic_name}")############################### Heuristic name TBD in ASS2
+                        else:
+                            file.write("Player 1 is H & Player 2 is H\n\n")
+                file.write(f"{game}\n")
+                file.write("Action taken: \n\n\n")#################################
+                #if ('Comp' in strg): ##################### TBD in Ass2
+                    # file.write(f"Time for this action: {}")#####################
+                    # file.write(f"Heuristic score: {}\n")########################
+                    # file.write(f"cummulative evals: {}\n Cummulative evals by depth: {}\n Cummulative % evals per depth: {}\n Average branching factor: {}\n")
+                if game.has_winner() is not None:
+                    file.write(f"Defender wins in {game.turns_played} turns\n")
+            except Exception as e:
+                print(e)
+
+    # # CoordPair.to_string()
+    
     # the main game loop
     while True:
         print()
         print(game)
+        generate_output_file()
         winner = game.has_winner()
         if winner is not None:
             print(f"{winner.name} wins!")
@@ -60,4 +107,4 @@ def main():
                 exit(1)
 
 if __name__ == '__main__':
-    main()
+    main()  
