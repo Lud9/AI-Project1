@@ -166,7 +166,7 @@ class Game:
         return True
 
     def is_attack(self, coords: CoordPair) -> bool:
-        return False
+        return not self.is_empty(coords.dst) and self.get(coords.src).player != self.get(coords.dst).player
 
     def is_repair(self, coords: CoordPair) -> bool:
         return False
@@ -181,6 +181,12 @@ class Game:
         return (True, "")
 
     def perform_attack(self, coords: CoordPair) -> Tuple[bool, str]:
+        srcUnit = self.get(coords.src)
+        dstUnit = self.get(coords.dst)
+        src_damage_taken = dstUnit.damage_amount(srcUnit)
+        dst_damage_taken = srcUnit.damage_amount(dstUnit)
+        self.mod_health(coords.src, -src_damage_taken)
+        self.mod_health(coords.dst, -dst_damage_taken)
         return (True, "")
 
     def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
