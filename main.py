@@ -3,6 +3,7 @@ import argparse
 from game import Game, GameType, Player, CoordPair,Options
     
 def main():
+    #Command line example:  python main.py --max_depth 2 --max_time 5 --max_turns 2
     # parse command line arguments
     parser = argparse.ArgumentParser(
         prog='ai_wargame',
