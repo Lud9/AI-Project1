@@ -50,7 +50,7 @@ def main():
     # create a new game
     game = Game(options=options)
 
-###############Function to generate output file
+############### Function to generate output file
     filename = f"gameTrace-{options.alpha_beta}-{options.max_time}-{options.max_turns}.txt"
     def generate_output_file():
         with open(filename, 'a') as file:
@@ -69,7 +69,7 @@ def main():
                         else:
                             file.write("Player 1 is H & Player 2 is H\n\n")
                 file.write(f"{game}\n")
-                file.write("Action taken: \n\n\n")#################################
+                file.write("Action taken: \n\n\n")################################# TO FINISH
                 #if ('Comp' in strg): ##################### TBD in Ass2
                     # file.write(f"Time for this action: {}")
                     # file.write(f"Heuristic score: {}\n")
