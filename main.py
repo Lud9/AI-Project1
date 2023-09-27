@@ -64,14 +64,14 @@ def main():
                                 file.write("Player 1 is AI & Player 2 is H\n")
                             else:
                                 file.write("Player 1 is H & Player 2 is AI\n")
-                            #file.write(f"{heuristic_name}")############################### Heuristic name TBD in ASS2
+                            #file.write(f"{heuristic_name}")##################### Heuristic name TBD in ASS2
                         else:
                             file.write("Player 1 is H & Player 2 is H\n\n")
                 file.write(f"{game}\n")
                 file.write("Action taken: \n\n\n")#################################
                 #if ('Comp' in strg): ##################### TBD in Ass2
-                    # file.write(f"Time for this action: {}")#####################
-                    # file.write(f"Heuristic score: {}\n")########################
+                    # file.write(f"Time for this action: {}")
+                    # file.write(f"Heuristic score: {}\n")
                     # file.write(f"Cummulative evals: {}\n Cummulative evals by depth: {}\n Cummulative % evals per depth: {}\n Average branching factor: {}\n")
                 if game.has_winner() is not None:
                     file.write(f"Defender wins in {game.turns_played} turns\n")
