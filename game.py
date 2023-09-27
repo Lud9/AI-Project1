@@ -169,7 +169,7 @@ class Game:
         return not self.is_empty(coords.dst) and self.get(coords.src).player != self.get(coords.dst).player
 
     def is_repair(self, coords: CoordPair) -> bool:
-        return False
+        return self.get(coords).health == Unit.repair_amount(self.get(coords))#####################
 
     def is_self_destruct(self, coords: CoordPair) -> bool:
         return self.is_self_move(coords)
@@ -190,6 +190,9 @@ class Game:
         return (True, "")
 
     def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
+        if self.is_adjacent_move(coords):
+            target = self.get(coords)
+            Unit.repair_amount(self, target)
         return (True, "")
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
