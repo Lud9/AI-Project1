@@ -17,8 +17,8 @@ def main():
     parser.add_argument('--alpha_beta', type=bool, help='A Boolean to force the use of either minimax (FALSE) or alpha-beta (TRUE)')
     
     args = parser.parse_args()
-    
 
+    
     # parse the game type
     if args.game_type == "attacker":
         game_type = GameType.AttackerVsComp
@@ -55,14 +55,12 @@ def main():
         with open(filename, 'a') as file:
             try:
                 if os.path.exists(filename):
-                    strg= str(game_type)
                     if (os.path.getsize(filename)<= 0):
-                        
                         file.write(f"Value of the timeout in seconds: {options.max_time}\n")
                         file.write(f"The maximum number of turns: {options.max_turns}\n")
-                        if ('Comp' in strg):
+                        if ('Comp' in {game_type}):
                             file.write(f"The alpha-beta is {options.alpha_beta}\n")
-                            if strg.find('Comp')< strg.find('r'):
+                            if {game_type}.find('Comp')< {game_type}.find('r'):
                                 file.write("Player 1 is AI & Player 2 is H\n")
                             else:
                                 file.write("Player 1 is H & Player 2 is AI\n")
@@ -74,13 +72,11 @@ def main():
                 #if ('Comp' in strg): ##################### TBD in Ass2
                     # file.write(f"Time for this action: {}")#####################
                     # file.write(f"Heuristic score: {}\n")########################
-                    # file.write(f"cummulative evals: {}\n Cummulative evals by depth: {}\n Cummulative % evals per depth: {}\n Average branching factor: {}\n")
+                    # file.write(f"Cummulative evals: {}\n Cummulative evals by depth: {}\n Cummulative % evals per depth: {}\n Average branching factor: {}\n")
                 if game.has_winner() is not None:
                     file.write(f"Defender wins in {game.turns_played} turns\n")
             except Exception as e:
                 print(e)
-
-    # # CoordPair.to_string()
     
     # the main game loop
     while True:
