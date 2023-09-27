@@ -190,9 +190,11 @@ class Game:
         return (True, "")
 
     def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
-        if self.is_adjacent_move(coords):
+         if self.is_adjacent_move(coords):
             target = self.get(coords)
-            Unit.repair_amount(self, target)
+            if (self is Player.Attacker and target is Player.Attacker) or (self is Player.Defender and target is Player.Defender):
+                new_health = Unit.repair_amount(target)
+                Game.mod_health(coords, new_health)
         return (True, "")
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
