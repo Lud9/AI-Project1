@@ -192,7 +192,7 @@ class Game:
     def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
         start_U = self.get(coords.src)
         target_U = self.get(coords.dst)
-        if self.is_repair(coords):
+        if self.is_adjacent_move(coords):
             if (start_U.player is Player.Attacker and target_U.player is Player.Attacker) or (start_U.player is Player.Defender and target_U.player is Player.Defender):
                 added_value = start_U.repair_amount(target_U)
                 if self.get(coords.dst).health != 9: 
