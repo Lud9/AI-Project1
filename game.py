@@ -169,7 +169,7 @@ class Game:
         return not self.is_empty(coords.dst) and self.get(coords.src).player != self.get(coords.dst).player
 
     def is_repair(self, coords: CoordPair) -> bool:
-        return self.get(coords.dst).health == 9#####################
+        return  self.is_adjacent_move(coords)
 
     def is_self_destruct(self, coords: CoordPair) -> bool:
         return self.is_self_move(coords)
@@ -192,12 +192,15 @@ class Game:
     def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
         start_U = self.get(coords.src)
         target_U = self.get(coords.dst)
-        if self.is_adjacent_move(coords):
+        if self.is_repair(coords):
             if (start_U.player is Player.Attacker and target_U.player is Player.Attacker) or (start_U.player is Player.Defender and target_U.player is Player.Defender):
                 added_value = start_U.repair_amount(target_U)
-                if self.get(coords.dst).health != 9:
+                if self.get(coords.dst).health != 9: 
                     self.mod_health(coords.dst, added_value)
-        return (True, "")
+                    return (True, f"Repaireed {added_value} heath point(s)")
+                else:
+                    return (False, "Health already at 9")
+        return(False, "Invalid move")
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
 
