@@ -95,7 +95,7 @@ class Game:
         return False
 
     def is_self_move(self, coords: CoordPair) -> bool:
-        return (coords.src.row == coords.dst.row and coords.src.col == coords.dst.col)
+        return (coords.src == coords.dst)
 
     def is_adjacent_move_or_self_move(self, coords: CoordPair) -> bool:
         return self.is_adjacent_move(coords) or self.is_self_move(coords)
@@ -148,13 +148,9 @@ class Game:
     # checks if the move is to an empty cell & all other checks necessary for movement action
     def is_movement(self, coords: CoordPair) -> bool:
 
-        if not self.is_adjacent_move(coords):
-            return False
-
-        unit = self.get(coords.dst)
-        if unit is not None:
-            return False
-
+        if not self.is_empty(coords.dst):
+            return False;
+            
         if self.is_AI_Firewall_Program(coords):
 
             if self.is_engaged_in_combat(coords):
@@ -169,7 +165,11 @@ class Game:
         return not self.is_empty(coords.dst) and self.get(coords.src).player != self.get(coords.dst).player
 
     def is_repair(self, coords: CoordPair) -> bool:
-        return  self.is_adjacent_move(coords)
+        start_U = self.get(coords.src)
+        target_U = self.get(coords.dst)
+        if (start_U.player == target_U.player and target_U.health != 9):
+            return True
+        return False 
 
     def is_self_destruct(self, coords: CoordPair) -> bool:
         return self.is_self_move(coords)
@@ -178,7 +178,7 @@ class Game:
         self.set(coords.dst, self.get(coords.src))
         self.set(coords.src, None)
 
-        return (True, "")
+        return (True, "Movement successful")
 
     def perform_attack(self, coords: CoordPair) -> Tuple[bool, str]:
         srcUnit = self.get(coords.src)
@@ -187,20 +187,15 @@ class Game:
         dst_damage_taken = srcUnit.damage_amount(dstUnit)
         self.mod_health(coords.src, -src_damage_taken)
         self.mod_health(coords.dst, -dst_damage_taken)
-        return (True, "")
+        return (True, f"{src_damage_taken} damage taken and {dst_damage_taken} damage done")
 
     def perform_repair(self, coords: CoordPair) -> Tuple[bool, str]:
         start_U = self.get(coords.src)
         target_U = self.get(coords.dst)
-        if self.is_adjacent_move(coords):
-            if (start_U.player is Player.Attacker and target_U.player is Player.Attacker) or (start_U.player is Player.Defender and target_U.player is Player.Defender):
-                added_value = start_U.repair_amount(target_U)
-                if self.get(coords.dst).health != 9: 
-                    self.mod_health(coords.dst, added_value)
-                    return (True, f"Repaireed {added_value} heath point(s)")
-                else:
-                    return (False, "Health already at 9")
-        return(False, "Invalid move")
+        added_value = start_U.repair_amount(target_U)
+        self.mod_health(coords.dst, added_value)
+        return (True, f"Repaireed {added_value} heath point(s)")
+        
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
 
@@ -220,7 +215,7 @@ class Game:
 
         self.mod_health(coords.src, -9)
 
-        return (True, "")
+        return (True, f"{coords.src} self destructed")
 
     def perform_move(self, coords: CoordPair) -> Tuple[bool, str]:
         """Validate and perform a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
@@ -229,13 +224,12 @@ class Game:
                 return self.perform_movement(coords)
             elif self.is_attack(coords):
                 return self.perform_attack(coords)
-            elif self.is_repair(coords):
-                return self.perform_repair(coords)
             elif self.is_self_destruct(coords):
                 return self.perform_self_destruct(coords)
+            elif self.is_repair(coords):
+                return self.perform_repair(coords)
             else:
                 return (False, "invalid move")
-
         return (False, "invalid move")
 
     def next_turn(self):
@@ -293,6 +287,7 @@ class Game:
     
     def human_turn(self):
         """Human player plays a move (or get via broker)."""
+        mv = None
         if self.options.broker is not None:
             print("Getting next move with auto-retry from game broker...")
             while True:
@@ -316,7 +311,7 @@ class Game:
                     break
                 else:
                     print("The move is not valid! Try again.")
-
+        return mv
     def computer_turn(self) -> CoordPair | None:
         """Computer plays a move."""
         mv = self.suggest_move()

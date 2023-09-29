@@ -5,9 +5,7 @@ from game import Game, GameType, Player, CoordPair,Options
 def main():
     #Command line example:  python main.py --max_depth 2 --max_time 5 --max_turns 2
     # parse command line arguments
-    parser = argparse.ArgumentParser(
-        prog='ai_wargame',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser( prog='ai_wargame', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--max_depth', type=int, help='maximum search depth')
     parser.add_argument('--max_time', type=float, help='maximum search time')
     parser.add_argument('--game_type', type=str, default="manual", help='game type: auto|attacker|defender|manual')
@@ -50,9 +48,22 @@ def main():
     # create a new game
     game = Game(options=options)
 
+    
 ############### Function to generate output file
     filename = f"gameTrace-{options.alpha_beta}-{options.max_time}-{options.max_turns}.txt"
-    def generate_output_file():
+    
+    def make_unique_filename(filename):
+            base, ext = os.path.splitext(filename)
+            counter = 1
+            new_filename = filename
+            while os.path.exists(new_filename):
+                new_filename = f"{base}({counter}){ext}"
+                counter += 1
+            return new_filename
+    
+    filename = make_unique_filename(filename)
+
+    def generate_output_file(coords: CoordPair = None):
         with open(filename, 'a') as file:
             try:
                 if os.path.exists(filename):
@@ -69,7 +80,8 @@ def main():
                         else:
                             file.write("Player 1 is H & Player 2 is H\n\n")
                 file.write(f"{game}\n")
-                file.write("Action taken: \n\n\n")################################# TO FINISH
+                if (coords is not None):
+                    file.write(f"Action taken: {coords.src}-{coords.dst} \n\n\n")
                 #if ('Comp' in strg): ##################### TBD in Ass2
                     # file.write(f"Time for this action: {}")
                     # file.write(f"Heuristic score: {}\n")
@@ -78,30 +90,30 @@ def main():
                     file.write(f"Defender wins in {game.turns_played} turns\n")
             except Exception as e:
                 print(e)
-    
+
     # the main game loop
+    mv = None
     while True:
         print()
         print(game)
-        generate_output_file()
+        generate_output_file(mv)
         winner = game.has_winner()
         if winner is not None:
             print(f"{winner.name} wins!")
             break
         if game.options.game_type == GameType.AttackerVsDefender:
-            game.human_turn()
+            mv = game.human_turn()
         elif game.options.game_type == GameType.AttackerVsComp and game.next_player == Player.Attacker:
-            game.human_turn()
+            mv = game.human_turn()
         elif game.options.game_type == GameType.CompVsDefender and game.next_player == Player.Defender:
-            game.human_turn()
+            mv = game.human_turn()
         else:
             player = game.next_player
-            move = game.computer_turn()
+            move = game.computer_turn()            
             if move is not None:
                 game.post_move_to_broker(move)
             else:
                 print("Computer doesn't know what to do!!!")
-                exit(1)
-
+                exit(1)        
 if __name__ == '__main__':
     main()  

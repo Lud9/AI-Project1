@@ -55,7 +55,7 @@ class Unit:
         return amount
 
     def repair_amount(self, target: Unit) -> int:
-         """How much can this unit repair another unit."""
+        """How much can this unit repair another unit."""
         amount = self.repair_table[self.type.value][target.type.value]
         if target.health + amount > 9:
                 return 9 - target.health
