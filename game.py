@@ -167,7 +167,10 @@ class Game:
     def is_repair(self, coords: CoordPair) -> bool:
         start_U = self.get(coords.src)
         target_U = self.get(coords.dst)
-        if (start_U.player == target_U.player and target_U.health != 9):
+        
+        if (start_U.player == target_U.player and
+            target_U.health != 9 and
+            start_U.repair_table[start_U.type.value][target_U.type.value] != 0):
             return True
         return False 
 
