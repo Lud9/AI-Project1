@@ -168,7 +168,7 @@ class Game:
         start_U = self.get(coords.src)
         target_U = self.get(coords.dst)
         
-        if (start_U.player == target_U.player and
+        if (self.is_movement(coords) and start_U.player == target_U.player and
             target_U.health != 9 and
             start_U.repair_table[start_U.type.value][target_U.type.value] != 0):
             return True
