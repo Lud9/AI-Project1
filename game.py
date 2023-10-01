@@ -122,19 +122,13 @@ class Game:
         return (unit.type == UnitType.AI) or (unit.type == UnitType.Firewall) or (unit.type == UnitType.Program)
 
     def is_engaged_in_combat(self, coords: CoordPair) -> bool:
-        coordsToCheck = [
-            Coord(coords.src.row, coords.src.col + 1),
-            Coord(coords.src.row, coords.src.col - 1),
-            Coord(coords.src.row + 1, coords.src.col),
-            Coord(coords.src.row - 1, coords.src.col),
-        ]
 
-        oppPlayer = Player.next(self.get(coords.src).player)
 
-        for currentCoord in coordsToCheck:
-            if self.get(currentCoord) is None:
+        for currentCoord in coords.src.iter_adjacent():
+            current_unit = self.get(currentCoord)
+            if current_unit is None:
                 continue
-            if self.get(currentCoord).player == oppPlayer:
+            if current_unit.player != self.next_player:
                 return True
         return False
 
@@ -145,39 +139,15 @@ class Game:
         else:
             return (coords.dst.col - coords.src.col == 1) or (coords.dst.row - coords.src.row == 1)
 
-    # checks if the move is to an empty cell & all other checks necessary for movement action
-    def is_movement(self, coords: CoordPair) -> bool:
-
-        if not self.is_empty(coords.dst):
-            return False;
-            
+    def perform_movement(self, coords: CoordPair) -> Tuple[bool, str]:
         if self.is_AI_Firewall_Program(coords):
 
             if self.is_engaged_in_combat(coords):
-                return False
+                return (False,"Invalid move: Unit is engaged in combat.")
 
             if not self.is_moving_in_right_direction(coords):
-                return False
-
-        return True
-
-    def is_attack(self, coords: CoordPair) -> bool:
-        return not self.is_empty(coords.dst) and self.get(coords.src).player != self.get(coords.dst).player
-
-    def is_repair(self, coords: CoordPair) -> bool:
-        start_U = self.get(coords.src)
-        target_U = self.get(coords.dst)
-        
-        if (start_U.player == target_U.player and
-            target_U.health != 9 and
-            start_U.repair_table[start_U.type.value][target_U.type.value] != 0):
-            return True
-        return False 
-
-    def is_self_destruct(self, coords: CoordPair) -> bool:
-        return self.is_self_move(coords)
-
-    def perform_movement(self, coords: CoordPair) -> Tuple[bool, str]:
+                return (False, "Invalid move: Unit cannot move backwards.")
+            
         self.set(coords.dst, self.get(coords.src))
         self.set(coords.src, None)
 
@@ -196,8 +166,11 @@ class Game:
         start_U = self.get(coords.src)
         target_U = self.get(coords.dst)
         added_value = start_U.repair_amount(target_U)
+        if (added_value == 0):
+            return (False, "Invalid move: Unit cannot repair or repair leads to no change.")
+        
         self.mod_health(coords.dst, added_value)
-        return (True, f"Repaireed {added_value} heath point(s)")
+        return (True, f"Repaired {added_value} heath point(s)")
         
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
@@ -223,17 +196,15 @@ class Game:
     def perform_move(self, coords: CoordPair) -> Tuple[bool, str]:
         """Validate and perform a move expressed as a CoordPair. TODO: WRITE MISSING CODE!!!"""
         if self.is_valid_move(coords):
-            if self.is_movement(coords):
+            if self.is_empty(coords.dst):
                 return self.perform_movement(coords)
-            elif self.is_attack(coords):
+            elif self.next_player != self.get(coords.dst).player:
                 return self.perform_attack(coords)
-            elif self.is_self_destruct(coords):
+            elif self.is_self_move(coords):
                 return self.perform_self_destruct(coords)
-            elif self.is_repair(coords):
-                return self.perform_repair(coords)
             else:
-                return (False, "invalid move")
-        return (False, "invalid move")
+                return self.perform_repair(coords)
+        return (False, "Invalid move")
 
     def next_turn(self):
         """Transitions game to the next turn."""
@@ -313,7 +284,7 @@ class Game:
                     self.next_turn()
                     break
                 else:
-                    print("The move is not valid! Try again.")
+                    print(result + " Try again.")
         return mv
     def computer_turn(self) -> CoordPair | None:
         """Computer plays a move."""
