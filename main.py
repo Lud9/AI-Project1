@@ -87,7 +87,7 @@ def main():
                     # file.write(f"Heuristic score: {}\n")
                     # file.write(f"Cummulative evals: {}\n Cummulative evals by depth: {}\n Cummulative % evals per depth: {}\n Average branching factor: {}\n")
                 if game.has_winner() is not None:
-                    file.write(f"Defender wins in {game.turns_played} turns\n")
+                    file.write(f"{game.has_winner().name} wins in {game.turns_played} turns\n")
             except Exception as e:
                 print(e)
 
