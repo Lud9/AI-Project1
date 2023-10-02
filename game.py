@@ -147,7 +147,7 @@ class Game:
 
             if not self.is_moving_in_right_direction(coords):
                 return (False, "Invalid move: Unit cannot move backwards.")
-            
+
         self.set(coords.dst, self.get(coords.src))
         self.set(coords.src, None)
 
