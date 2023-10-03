@@ -3,6 +3,18 @@ from game import Game, GameType, Player, CoordPair,Options
 
 INFINITY = 99999999
 
+'''
+todo:
+-implement basic functions
+-add more complex functions for the e(n) function
+-implement & test minimax function
+-implement & test alpha beta pruning
+-implement ordering function (we should do ordering moves how i described
+(i/e a state after a rational good move is ordered before a state from a unrational bad move
+instead of how she said - a second heuristic thats faster than the first
+why? because its actually faster and smarter this way and is optimized for alpha beta pruning)
+'''
+
 def hasAttackerWon(game: Game) -> bool:
     return game.has_winner() is not None and game.has_winner() == Player.Attacker
 
@@ -47,7 +59,7 @@ def getPiecePoints(game: Game) -> int:
     return getAttackerPiecePoints(game) - getDefenderPiecePoints(game)
 
 #during each main loop check game state by calling this function to evaluate e(n)
-def eScore(game: Game) -> int:
+def evaluateScore(game: Game) -> int:
     if hasAttackerWon(game):
         return INFINITY
     elif hasDefenderWon(game):
@@ -64,5 +76,20 @@ def eScore(game: Game) -> int:
         if game.turns_played > (3 * game.options.max_turns/4):
             score -= game.turns_played - (3 * game.options.max_turns/4)
 
+    return score
+
+def minimaxScore(game: Game, depth: int) -> int:
+    if depth == 0:
+        return evaluateScore(game)
+
+    '''
+    #alpha beta pruning not yet in logic below, but very simple to implement
+    int bestEval = +/-INFINITY #based on whose turn it is
+    for move in allMoves:
+        game.makeMove()
+        int eval = minimaxScore(game, depth - 1)
+        bestEval = min/max(bestEval, eval) #based on whose turn it is
+        game.unmakeMove()
+    '''
 
     return 0
