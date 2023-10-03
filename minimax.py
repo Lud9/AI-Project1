@@ -10,9 +10,10 @@ todo:
 -implement & test minimax function
 -implement & test alpha beta pruning
 -implement ordering function (we should do ordering moves how i described
-(i/e a state after a rational good move is ordered before a state from a unrational bad move
-instead of how she said - a second heuristic thats faster than the first
-why? because its actually faster and smarter this way and is optimized for alpha beta pruning)
+(i/e a state after a rational good move is ordered at the front of the list
+instead of how she said - a second heuristic thats faster than the first and ordering it like that
+why? because its actually faster and smarter this way and is optimized for alpha beta pruning
+time complexity will be o(n) instead of o(nlogn))
 '''
 
 def hasAttackerWon(game: Game) -> bool:
