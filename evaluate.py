@@ -26,15 +26,15 @@ def basicEvaluateForAttacker(game: Game) -> int:
             curUnit = game.board[i][j]
             if curUnit is not None and curUnit.player == Player.Attacker:
                 if curUnit.type == UnitType.AI:
-                    score += 100 * curUnit.health
+                    score += 1000 * curUnit.health
                 elif curUnit.type == UnitType.Virus:
-                    score += 10 * curUnit.health
+                    score += 100 * curUnit.health
                 elif curUnit.type == UnitType.Tech:
-                    score += 10 * curUnit.health
-                elif curUnit.type == UnitType.Firewall:
-                    score += 5 * curUnit.health
+                    score += 100 * curUnit.health
                 elif curUnit.type == UnitType.Program:
-                    score += 5 * curUnit.health
+                    score += 50 * curUnit.health
+                elif curUnit.type == UnitType.Firewall:
+                    score += 20 * curUnit.health
     return score
 
 def getDefenderAICoord(game: Game) -> int:
@@ -53,8 +53,8 @@ def moveAttackingPiecesTowardsEnemyAIScore(game: Game) -> int:
         for col in range(len(game.board[row])):
             curUnit = game.board[row][col]
             if curUnit is not None and curUnit.player == Player.Attacker:
-                multiplier = 2
-                score += multiplier * ((enemyAICoord.row - abs(enemyAICoord.row - row)) + (enemyAICoord.col - abs(enemyAICoord.col - col)))
+                multiplier = 5
+                score -= multiplier * (row + col)
     return score
 
 def attackerPiecesTogetherScore(game: Game) -> int:
@@ -67,11 +67,15 @@ def attackerPiecesTogetherScore(game: Game) -> int:
                 for dstCoord in srcCoord.iter_adjacent():
                     if game.is_valid_coord(dstCoord):
                         adjUnit = game.board[dstCoord.row][dstCoord.col]
-                        if adjUnit is not None:
-                            if adjUnit.player == Player.Attacker:
-                                score += 1
+                        if adjUnit is not None and adjUnit.player == Player.Attacker:
+                            score += 1
+                            '''
+                            #TODO: test to make sure that pieces move to attack instead of solely protect AI
+                            if curUnit.type == UnitType.AI:
+                                    score += 50
+                            '''
                             if curUnit.type == UnitType.Program and adjUnit.type == UnitType.Virus:
-                                score += 10
+                                score += 2
     return score
 
 def basicEvaluateForDefender(game: Game) -> int:
@@ -81,30 +85,62 @@ def basicEvaluateForDefender(game: Game) -> int:
             curUnit = game.board[i][j]
             if curUnit is not None and curUnit.player == Player.Defender:
                 if curUnit.type == UnitType.AI:
-                    score += 100 * curUnit.health
+                    score += 1000 * curUnit.health
                 elif curUnit.type == UnitType.Virus:
-                    score += 10 * curUnit.health
+                    score += 100 * curUnit.health
                 elif curUnit.type == UnitType.Tech:
-                    score += 10 * curUnit.health
-                elif curUnit.type == UnitType.Firewall:
-                    score += 5 * curUnit.health
+                    score += 100 * curUnit.health
                 elif curUnit.type == UnitType.Program:
-                    score += 5 * curUnit.health
+                    score += 50 * curUnit.health
+                elif curUnit.type == UnitType.Firewall:
+                    score += 20 * curUnit.health
     return score
 
 def closeToFinishScore(game: Game) -> int:
     return game.turns_played - (3*(game.options.max_turns/4))
 
+def defenderPieceFlanksCoveredScore(game: Game) -> int:
+    score = 0
+    for i in range(len(game.board)):
+        for j in range(len(game.board[i])):
+            curUnit = game.board[i][j]
+            if curUnit is not None and curUnit.player == Player.Defender:
+                srcCoord = Coord(i, j)
+                for dstCoord in srcCoord.iter_adjacent():
+                    if game.is_valid_coord(dstCoord):
+                        adjUnit = game.board[dstCoord.row][dstCoord.col]
+                        if adjUnit is not None:
+                            if adjUnit.player == Player.Defender:
+                                score += 2
+                                if curUnit.type == UnitType.AI:
+                                    score += 50
+                                if curUnit.type == UnitType.Program and adjUnit.type == UnitType.Tech:
+                                    score += 10
+                            elif adjUnit.player == Player.Attacker:
+                                #TODO: can make this more complicated
+                                score -= 20
+                        else:
+                            score += 1
+                    else:
+                        if curUnit.type == UnitType.AI:
+                            score += 10
+                        else:
+                            score += 2
+    return score
+
 
 def evaluateForAttacker(game: Game) -> int:
     score = 0
     score += basicEvaluateForAttacker(game)
+    #attacking pieces should move towards enemy AI
+    #TODO: test multiplier in func below with mult below to ensure that attacking pieces are encouraged to move towards ai instead of staying together
     score += moveAttackingPiecesTowardsEnemyAIScore(game)
     attackerPiecesTogetherMultiplier = 0
     if inOpening(game):
         attackerPiecesTogetherMultiplier = 1
     else:
-        attackerPiecesTogetherMultiplier = 5
+        attackerPiecesTogetherMultiplier = 3
+    #keep attacking pieces together
     score += attackerPiecesTogetherMultiplier * attackerPiecesTogetherScore(game)
     return score
 
@@ -112,9 +148,8 @@ def evaluateForAttacker(game: Game) -> int:
 def evaluateForDefender(game: Game) -> int:
     score = 0
     score += basicEvaluateForDefender(game)
-    #keep num of adjacent coords as small as possible (specifically for ai)
-    #keep num of defender pieces in adjacent coords as high as possible (specifically for ai)
-    #keep pieces together (specifically tech & program)
+    #keep num of adjacent coords as small as possible & num of defender pieces in adjacent coords as high as possible (specifically for ai) & pieces together (specifically tech & program)
+    score += defenderPieceFlanksCoveredScore(game)
     if inEndgame(game):
         score += closeToFinishScore(game)
     return score
