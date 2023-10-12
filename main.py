@@ -1,6 +1,7 @@
 import os
 import argparse
 from game import Game, GameType, Player, CoordPair,Options
+from evaluate import *
     
 def main():
     #Command line example:  python main.py --max_depth 2 --max_time 5 --max_turns 2
@@ -98,6 +99,7 @@ def main():
         print(game)
         generate_output_file(mv)
         winner = game.has_winner()
+        print("heuristic score: " + str(evaluateScore(game)))
         if winner is not None:
             print(f"{winner.name} wins!")
             break
