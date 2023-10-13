@@ -14,11 +14,14 @@ def generateStates(game: Game) -> list[Game]:
                 srcCoord = Coord(i, j)
                 for dstCoord in srcCoord.iter_adjacent():
                     if game.is_valid_coord(dstCoord):
-                        nextMove = copy.deepcopy(game)
-                        (success, result) = nextMove.perform_move(CoordPair(srcCoord, dstCoord))
+                        nextState = copy.deepcopy(game)
+                        (success, result) = nextState.perform_move(CoordPair(srcCoord, dstCoord))
                         if success:
-                            nextStates.append(nextMove)
-                selfDestructMove = copy.deepcopy(game)
-                selfDestructMove.perform_move(CoordPair(srcCoord, srcCoord))
-                nextStates.append(selfDestructMove)
+                            nextState.next_turn()
+                            nextStates.append(nextState)
+                selfDestructState = copy.deepcopy(game)
+                (success, result) = selfDestructState.perform_move(CoordPair(srcCoord, srcCoord))
+                if success:
+                    selfDestructState.next_turn()
+                    nextStates.append(selfDestructState)
     return nextStates
