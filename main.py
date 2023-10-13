@@ -2,6 +2,7 @@ import os
 import argparse
 from game import Game, GameType, Player, CoordPair,Options
 from evaluate import *
+from generateStates import *
     
 def main():
     #Command line example:  python main.py --max_depth 2 --max_time 5 --max_turns 2
@@ -100,6 +101,11 @@ def main():
         generate_output_file(mv)
         winner = game.has_winner()
         print("Heuristic score: " + str(evaluateScore(game)))
+        nextStates = generateStates(game)
+        for state in nextStates:
+            print()
+            print(state)
+            print("Heuristic score for child state: " + str(evaluateScore(state)) + '\n')
         if winner is not None:
             print(f"{winner.name} wins!")
             break
