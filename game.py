@@ -122,8 +122,6 @@ class Game:
         return (unit.type == UnitType.AI) or (unit.type == UnitType.Firewall) or (unit.type == UnitType.Program)
 
     def is_engaged_in_combat(self, coords: CoordPair) -> bool:
-
-
         for currentCoord in coords.src.iter_adjacent():
             current_unit = self.get(currentCoord)
             if current_unit is None:

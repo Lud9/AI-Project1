@@ -1,6 +1,14 @@
+from enums import *
 from game import Game
 from coord import Coord, CoordPair
 import copy
+
+def doMoreDamage(result: str) -> bool:
+    if "damage" not in result:
+        return False
+
+    [damageTaken, damageDone] = [int(s) for s in result.split() if s.isdigit()]
+    return damageDone > damageTaken
 
 
 def generateStates(game: Game) -> list[Game]:
@@ -17,8 +25,16 @@ def generateStates(game: Game) -> list[Game]:
                         nextState = copy.deepcopy(game)
                         (success, result) = nextState.perform_move(CoordPair(srcCoord, dstCoord))
                         if success:
-                            nextState.next_turn()
-                            nextStates.append(nextState)
+                            #by default we know that viruses and techs are each player's most powerful pieces so insert that state in front
+                            #if a move to a state does more damage to opponent than to itself insert that state in front
+                            if (nextPlayer == Player.Attacker and curUnit.type == UnitType.Virus) or (nextPlayer == Player.Defender and curUnit.type == UnitType.Tech) or doMoreDamage(result):
+                                temp = nextStates[0]
+                                nextState.next_turn()
+                                nextStates[0] = nextState
+                                nextStates.append(temp)
+                            else:
+                                nextState.next_turn()
+                                nextStates.append(nextState)
                 selfDestructState = copy.deepcopy(game)
                 (success, result) = selfDestructState.perform_move(CoordPair(srcCoord, srcCoord))
                 if success:

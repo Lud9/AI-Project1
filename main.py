@@ -100,12 +100,12 @@ def main():
         print(game)
         generate_output_file(mv)
         winner = game.has_winner()
-        print("Heuristic score: " + str(evaluateScore(game)))
+        '''print("Heuristic score: " + str(evaluateScore(game)))
         nextStates = generateStates(game)
         for state in nextStates:
             print()
             print(state)
-            print("Heuristic score for child state: " + str(evaluateScore(state)) + '\n')
+            print("Heuristic score for child state: " + str(evaluateScore(state)) + '\n')'''
         if winner is not None:
             print(f"{winner.name} wins!")
             break
