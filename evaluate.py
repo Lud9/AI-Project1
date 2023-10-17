@@ -77,7 +77,7 @@ def basicEvaluateForDefender(game: Game) -> int:
         for j in range(len(game.board[i])):
             curUnit = game.board[i][j]
             if curUnit is not None and curUnit.player == Player.Defender:
-                score += defenderPieceFlanksCoveredScore(game, i , j)
+                score += defenderPieceFlanksCoveredScore(game, i, j)
                 if curUnit.type == UnitType.AI:
                     score += 1000 * curUnit.health
                 elif curUnit.type == UnitType.Virus:
