@@ -149,7 +149,7 @@ class Game:
         self.set(coords.dst, self.get(coords.src))
         self.set(coords.src, None)
 
-        return (True, "Movement successful")
+        return (True, "Movement successful\n")
 
     def perform_attack(self, coords: CoordPair) -> Tuple[bool, str]:
         srcUnit = self.get(coords.src)
@@ -165,10 +165,10 @@ class Game:
         target_U = self.get(coords.dst)
         added_value = start_U.repair_amount(target_U)
         if (added_value == 0):
-            return (False, "Invalid move: Unit cannot repair or repair leads to no change.")
+            return (False, "Invalid move: Unit cannot repair or repair leads to no change.\n")
         
         self.mod_health(coords.dst, added_value)
-        return (True, f"Repaired {added_value} heath point(s)")
+        return (True, f"Repaired {added_value} heath point(s)\n")
         
 
     def perform_self_destruct(self, coords: CoordPair) -> Tuple[bool, str]:
@@ -293,6 +293,8 @@ class Game:
                 print(f"Computer {self.next_player.name}: ",end='')
                 print(result)
                 self.next_turn()
+            else: # Print something if mv is an illegal move
+                print("\nInvalid move. Try again!!!")
         return mv
 
     def player_units(self, player: Player) -> Iterable[Tuple[Coord,Unit]]:
@@ -355,6 +357,7 @@ class Game:
         if self.stats.total_seconds > 0:
             print(f"Eval perf.: {total_evals/self.stats.total_seconds/1000:0.1f}k/s")
         print(f"Elapsed time: {elapsed_seconds:0.1f}s")
+        print("\n")
         return move
 
     def post_move_to_broker(self, move: CoordPair):
