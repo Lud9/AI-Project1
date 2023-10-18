@@ -3,9 +3,10 @@ import argparse
 from game import Game, GameType, Player, CoordPair,Options
 from evaluate import *
 from generateStates import *
+from datetime import datetime ############################
     
 def main():
-    #Command line example:  python main.py --max_depth 2 --max_time 5 --max_turns 2
+    #Command line example:  python main.py --max_depth 2 --max_time 5 --max_turns 20 --game_type auto
     # parse command line arguments
     parser = argparse.ArgumentParser( prog='ai_wargame', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--max_depth', type=int, help='maximum search depth')
@@ -13,7 +14,7 @@ def main():
     parser.add_argument('--game_type', type=str, default="manual", help='game type: auto|attacker|defender|manual')
     parser.add_argument('--broker', type=str, help='play via a game broker')
     
-    #########The maximum number of turns to declare the end of the game 
+    # The maximum number of turns to declare the end of the game 
     parser.add_argument('--max_turns', type=int, help='number of turns before game ends') 
     parser.add_argument('--alpha_beta', type=bool, help='A Boolean to force the use of either minimax (FALSE) or alpha-beta (TRUE)')
     
@@ -41,7 +42,7 @@ def main():
     if args.broker is not None:
         options.broker = args.broker
     
-    ########## override 
+    # override 
     if args.max_turns is not None:
         options.max_turns = args.max_turns
     if args.alpha_beta is not None:
@@ -51,8 +52,9 @@ def main():
     game = Game(options=options)
 
     
-############### Function to generate output file
+    # Function to generate output file
     filename = f"gameTrace-{options.alpha_beta}-{options.max_time}-{options.max_turns}.txt"
+    heuristic_name = "E0" ########################### Changeable 
     
     def make_unique_filename(filename):
             base, ext = os.path.splitext(filename)
@@ -64,32 +66,53 @@ def main():
             return new_filename
     
     filename = make_unique_filename(filename)
-
+    
     def generate_output_file(coords: CoordPair = None):
+        game_typ = str({game_type})
         with open(filename, 'a') as file:
             try:
                 if os.path.exists(filename):
                     if (os.path.getsize(filename)<= 0):
-                        file.write(f"Value of the timeout in seconds: {options.max_time}\n")
+                        file.write(f"Value of the timeout in seconds: {options.max_time}sec\n")
                         file.write(f"The maximum number of turns: {options.max_turns}\n")
-                        if ('Comp' in {game_type}):
+                        if ('Comp' in game_typ):
                             file.write(f"The alpha-beta is {options.alpha_beta}\n")
-                            if {game_type}.find('Comp')< {game_type}.find('r'):
+                            if game_typ.find('Comp')< game_typ.find('r') and game_typ.find('r') != -1:
                                 file.write("Player 1 is AI & Player 2 is H\n")
-                            else:
+                            elif game_typ.find('Comp')> game_typ.find('r') and game_typ.find('r') != -1:
                                 file.write("Player 1 is H & Player 2 is AI\n")
-                            #file.write(f"{heuristic_name}")##################### Heuristic name TBD in ASS2
+                            else:
+                                file.write("Player 1 is AI & Player 2 is AI\n")
+                            file.write(f"The heuristic name is: {heuristic_name}")############### Heuristic name TBD
                         else:
                             file.write("Player 1 is H & Player 2 is H\n\n")
-                file.write(f"{game}\n")
+                file.write(f"{game.clone()}\n")
                 if (coords is not None):
                     file.write(f"Action taken: {coords.src}-{coords.dst} \n\n\n")
-                #if ('Comp' in strg): ##################### TBD in Ass2
-                    # file.write(f"Time for this action: {}")
-                    # file.write(f"Heuristic score: {}\n")
-                    # file.write(f"Cummulative evals: {}\n Cummulative evals by depth: {}\n Cummulative % evals per depth: {}\n Average branching factor: {}\n")
+                if ('Comp' in game_typ): 
+                    total_evals = sum(game.stats.evaluations_per_depth.values())
+                    start_time = datetime.now()
+                    heuristic_score_and_branching_factor = game.random_move() #### change for real heuristic function
+                    elapsed_seconds = (datetime.now() - start_time).total_seconds()
+                    
+                    file.write(f"Action taken/suggested by AI: {move}\n")
+                    file.write(f"Time for this action: {elapsed_seconds: } sec\n") 
+                    #file.write(f"Heuristic score: {heuristic_score_and_branching_factor[0]}\n") 
+                    file.write(f"Heuristic score: {str(evaluateScore0(game))}\n") ################ 
+                    file.write(f"Cummulative evals: {total_evals}\n") 
+                    
+                    file.write(f"Cummulative evals by depth: ") 
+                    for k in sorted(game.stats.evaluations_per_depth.keys()):
+                        file.write(f"{k} = {game.stats.evaluations_per_depth[k]}, ")
+                    file.write(f"\nCummulative % evals per depth: ")
+                    for k in sorted(game.stats.evaluations_per_depth.keys()):
+                        file.write(f"{k} = {game.stats.evaluations_per_depth[k]/total_evals*100}, ")
+                    file.write("\n")
+                    #file.write(f"Average branching factor: {heuristic_score_and_branching_factor[2]}\n")  ######### will fix later
+                    file.write("\n")     
+
                 if game.has_winner() is not None:
-                    file.write(f"{game.has_winner().name} wins in {game.turns_played} turns\n")
+                    file.write(f"\n\n\n{game.has_winner().name} wins in {game.turns_played} turns\n")
             except Exception as e:
                 print(e)
 
@@ -102,10 +125,11 @@ def main():
         winner = game.has_winner()
         '''print("Heuristic score: " + str(evaluateScore(game)))
         nextStates = generateStates(game)
-        for state in nextStates:
-            print()
-            print(state)
-            print("Heuristic score for child state: " + str(evaluateScore(state)) + '\n')'''
+        if nextStates is not None: ##################################
+            for state in nextStates:
+                print()
+                print(state)
+                print("Heuristic score for child state: " + str(evaluateScore(state)) + '\n')'''
         if winner is not None:
             print(f"{winner.name} wins!")
             break
