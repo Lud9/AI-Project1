@@ -151,6 +151,35 @@ def evaluateScore(game: Game) -> int:
         return evaluateForAttacker(game) - evaluateForDefender(game)
 
 
+def healthTimesAttackRepairPointsScore(game: Game, player: Player) -> int:
+    score = 0
+    for i in range(len(game.board)):
+        for j in range(len(game.board[i])):
+            curUnit = game.board[i][j]
+            if curUnit is not None and curUnit.player == player:
+                if curUnit.type == UnitType.AI:
+                    score += 15 * curUnit.health
+                elif curUnit.type == UnitType.Virus:
+                    score += 23 * curUnit.health
+                elif curUnit.type == UnitType.Tech:
+                    score += 19 * curUnit.health
+                elif curUnit.type == UnitType.Program:
+                    score += 13 * curUnit.health
+                elif curUnit.type == UnitType.Firewall:
+                    score += 5 * curUnit.health
+    return score
+
+#more basic eval function that is simpler but allows minimax to go deeper
+def evaluateScoreV2(game: Game) -> int:
+    if hasAttackerWon(game):
+        return INFINITY
+    elif hasDefenderWon(game):
+        return -INFINITY
+    else:
+        score = 0
+        score += healthTimesAttackRepairPointsScore(game, Player.Attacker) - healthTimesAttackRepairPointsScore(game, Player.Defender)
+        return score
+
 '''
 e0 in assignment description
 '''
