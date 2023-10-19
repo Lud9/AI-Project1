@@ -92,12 +92,11 @@ def main():
                 if ('Comp' in game_typ): 
                     total_evals = sum(game.stats.evaluations_per_depth.values())
                     start_time = datetime.now()
-                    heuristic_score_and_branching_factor = game.random_move() #### change for real heuristic function
+                    actionTaken = game.random_move() #### change for real heuristic function
                     elapsed_seconds = (datetime.now() - start_time).total_seconds()
                     
                     file.write(f"Action taken/suggested by AI: {move}\n")
-                    file.write(f"Time for this action: {elapsed_seconds: } sec\n") 
-                    #file.write(f"Heuristic score: {heuristic_score_and_branching_factor[0]}\n") 
+                    file.write(f"Time for this action: {elapsed_seconds:0.2f} sec\n") 
                     file.write(f"Heuristic score: {str(evaluateScore0(game))}\n") ################ 
                     file.write(f"Cummulative evals: {total_evals}\n") 
                     
@@ -108,7 +107,7 @@ def main():
                     for k in sorted(game.stats.evaluations_per_depth.keys()):
                         file.write(f"{k} = {game.stats.evaluations_per_depth[k]/total_evals*100}, ")
                     file.write("\n")
-                    #file.write(f"Average branching factor: {heuristic_score_and_branching_factor[2]}\n")  ######### will fix later
+                    file.write(f"Average branching factor: {avgBranchingFactor:0.2f}\n")  ######### will fix later
                     file.write("\n")     
 
                 if game.has_winner() is not None:
@@ -118,6 +117,7 @@ def main():
 
     # the main game loop
     mv = None
+    numBranching =0
     while True:
         print()
         print(game)
@@ -146,5 +146,11 @@ def main():
             else:
                 print("Computer doesn't know what to do!!!")
                 exit(1)        
+        if player != game.next_player:
+            numBranching += len(generateStates(game)) #Total number of states visited for each turn played
+        if game.turns_played == 0: #Check if it is not the root 
+             avgBranchingFactor= numBranching
+        else:
+            avgBranchingFactor= numBranching/(game.turns_played)       
 if __name__ == '__main__':
     main()  
